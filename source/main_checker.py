@@ -6,7 +6,7 @@ sys.path.append('.')
 from blender import Blender
 
 
-up_axis = 'Y'
+up_axis  = 'Y'
 num_view = 4
 
 wrapper = Blender()
@@ -14,6 +14,7 @@ wrapper.set_engine('CYCLES')
 wrapper.set_light_location((1,1,1))
 wrapper.set_cam_location((0, 0, -0.5))
 wrapper.fix_camera_yaw(-3.14)
+# wrapper.fix_camera_yaw(0)
 wrapper.point_camera_to_origin()
 
 wrapper.set_view_solid()
@@ -35,7 +36,7 @@ for file in files_list:
         continue
 
     wrapper.load_object(file)
-    wrapper.attach_checkerboard_texture()
+    wrapper.attach_checkerboard_texture(save_texture=True, image_name='b3.png')
 
     fila_name = file.split('/')[-1]
     fila_name = fila_name[:fila_name.rfind('.')]
