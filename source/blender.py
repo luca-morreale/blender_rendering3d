@@ -1,4 +1,5 @@
 
+import os
 import bpy
 import bpy_extras
 from mathutils import Vector
@@ -208,11 +209,25 @@ class Blender(object):
         bpy.ops.object.delete()
         self.obj_list = []
 
+    ########################################################################
+    ##                                UV                                  ##
+    ########################################################################
+    def project_uv_to_bounds(self, active_ob):
+        bpy.context.view_layer.objects.active = active_ob
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.uv.select_all(action='SELECT')
+        bpy.ops.uv.pack_islands()
+
+    def export_uv_layout(self, image_name, ob_active):
+        bpy.context.view_layer.objects.active = ob_active
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.uv.export_layout(filepath=image_name, export_all=True, opacity=0.0)
+
 
     ########################################################################
     ##                          Checkerboard                              ##
     ########################################################################
-    def attach_checkerboard_texture(self, checkerboard_type='color'):
+    def attach_checkerboard_texture(self, checkerboard_type='color', save_texture=False, image_name=None):
 
         if checkerboard_type == 'color':
             image_type = 'COLOR_GRID'
@@ -232,6 +247,13 @@ class Blender(object):
 
         self.link_nodes(material, shader_inputs['Base Color'], texture_node.outputs["Color"])
         self.attach_material_to_object(material, self.obj_list[-1])
+
+        self.project_uv_to_bounds(self.obj_list[-1])
+
+        if save_texture:
+            filename, file_extension = os.path.splitext(image_name)
+            image.save_render(filename + '_texture' + file_extension)
+            self.export_uv_layout(image_name, self.obj_list[-1])
 
 
     ########################################################################
