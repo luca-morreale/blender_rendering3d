@@ -6,8 +6,8 @@ sys.path.append('.')
 from blender import Blender
 
 
-up_axis='Y'
-num_view=4
+up_axis = 'Y'
+num_view = 4
 
 wrapper = Blender()
 wrapper.set_engine('CYCLES')
@@ -19,7 +19,8 @@ wrapper.point_camera_to_origin()
 wrapper.set_view_solid()
 
 
-path = 'b3.obj'
+
+path = '../models/b3.obj'
 
 
 if os.path.isfile(path):
