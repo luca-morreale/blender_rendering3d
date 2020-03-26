@@ -32,15 +32,15 @@ else:
 
 for file in files_list:
 
-    if file[-3:] != 'ply' and file[-3:] != 'obj':
+    if file[-3:] != 'obj':
         continue
 
     wrapper.load_object(file)
-    wrapper.attach_checkerboard_texture(save_texture=True, image_name='b3.png')
 
     fila_name = file.split('/')[-1]
     fila_name = fila_name[:fila_name.rfind('.')]
 
+    wrapper.attach_checkerboard_texture(flip_uv=True, save_texture=True, image_name=fila_name+'.png')
     wrapper.render_views_rotating(fila_name, num_view=num_view, up_axis=up_axis)
 
     wrapper.remove_objects()
