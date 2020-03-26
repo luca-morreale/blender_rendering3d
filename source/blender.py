@@ -237,6 +237,29 @@ class Blender(object):
         self.select_object(active_ob)
         self.toggle_object_edit_mode()
         bpy.ops.uv.export_layout(filepath=image_name, export_all=True, opacity=0.0)
+        self.deselect_all_objects()
+
+    def flip_uv(self, active_ob, axis='x'):
+        self.select_object(active_ob)
+        self.toggle_object_edit_mode()
+        # self.select_all_uv()
+
+        if axis == 'x':
+            axis_rotation = (True, False, False)
+        elif axis == 'y':
+            axis_rotation = (False, True, False)
+
+        bpy.ops.transform.mirror(constraint_axis=axis_rotation)
+
+        # self.deselect_all_uv()
+        self.deselect_all_objects()
+
+
+    def select_all_uv(self):
+        bpy.ops.uv.select_all(action='SELECT')
+
+    def deselect_all_uv(self):
+        bpy.ops.uv.select_all(action='DESELECT')
 
 
     ########################################################################
