@@ -10,7 +10,7 @@ up_axis  = 'Y'
 num_view = 4
 
 wrapper = Blender()
-wrapper.set_engine('CYCLES')
+wrapper.set_engine('BLENDER_WORKBENCH')
 wrapper.set_light_location((1,1,1))
 wrapper.set_cam_location((0, 0, -0.5))
 wrapper.fix_camera_yaw(-3.14)
