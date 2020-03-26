@@ -226,14 +226,16 @@ class Blender(object):
     ##                                UV                                  ##
     ########################################################################
     def project_uv_to_bounds(self, active_ob):
-        bpy.context.view_layer.objects.active = active_ob
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.uv.select_all(action='SELECT')
+        self.select_object(active_ob)
+        self.toggle_object_edit_mode()
+        self.select_all_uv()
         bpy.ops.uv.pack_islands()
+        self.deselect_all_uv()
+        self.deselect_all_objects()
 
-    def export_uv_layout(self, image_name, ob_active):
-        bpy.context.view_layer.objects.active = ob_active
-        bpy.ops.object.editmode_toggle()
+    def export_uv_layout(self, image_name, active_ob):
+        self.select_object(active_ob)
+        self.toggle_object_edit_mode()
         bpy.ops.uv.export_layout(filepath=image_name, export_all=True, opacity=0.0)
 
 
