@@ -234,7 +234,6 @@ class Blender(object):
         else:
             image_type = 'UV_GRID'
 
-        self.set_engine('CYCLES')
         self.set_color_by_texture()
 
         material  = self.create_new_material('checkerboard_mat')
