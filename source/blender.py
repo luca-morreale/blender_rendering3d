@@ -210,6 +210,19 @@ class Blender(object):
         self.obj_list = []
 
     ########################################################################
+    ##                             Object                                 ##
+    ########################################################################
+    def select_object(self, active_ob):
+        if bpy.context.view_layer.objects.active != active_ob:
+            bpy.context.view_layer.objects.active = active_ob
+
+    def deselect_all_objects(self):
+        self.select_object(None)
+
+    def toggle_object_edit_mode(self):
+        bpy.ops.object.editmode_toggle()
+
+    ########################################################################
     ##                                UV                                  ##
     ########################################################################
     def project_uv_to_bounds(self, active_ob):
