@@ -265,7 +265,8 @@ class Blender(object):
     ########################################################################
     ##                          Checkerboard                              ##
     ########################################################################
-    def attach_checkerboard_texture(self, checkerboard_type='color', save_texture=False, image_name=None):
+    def attach_checkerboard_texture(self, checkerboard_type='color', flip_uv=False,
+                                    save_texture=False, image_name=None):
 
         if checkerboard_type == 'color':
             image_type = 'COLOR_GRID'
@@ -287,6 +288,9 @@ class Blender(object):
 
         self.project_uv_to_bounds(self.obj_list[-1])
 
+        if flip_uv:
+            self.flip_uv(self.obj_list[-1], axis='x')
+
         if save_texture:
             filename, file_extension = os.path.splitext(image_name)
             image.save_render(filename + '_texture' + file_extension)
@@ -307,9 +311,5 @@ class Blender(object):
         self.scene.render.image_settings.file_format = 'PNG'
         self.scene.render.filepath = filename
         bpy.ops.render.render(write_still = 1)
-
-
-
-
 
     ########################################################################
