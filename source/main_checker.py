@@ -3,26 +3,23 @@ import os
 import sys
 
 sys.path.append('.')
-from blender import Blender
+from blender_helper import BlenderHelper
 
 
-up_axis  = 'Y'
-num_view = 4
+up_axis  = 'Z'
+num_view = 10
 
-wrapper = Blender()
-wrapper.set_engine('BLENDER_WORKBENCH')
+wrapper = BlenderHelper()
+wrapper.set_engine('BLENDER_EEVEE')
 wrapper.set_light_location((1,1,1))
-wrapper.set_cam_location((0, 0, -0.5))
+wrapper.set_cam_location((0, 2.5, 0))
 wrapper.fix_camera_yaw(-3.14)
-# wrapper.fix_camera_yaw(0)
 wrapper.point_camera_to_origin()
 
 wrapper.set_view_solid()
 
 
-
 path = '../models/b3.obj'
-
 
 if os.path.isfile(path):
     files_list = [path]
@@ -40,7 +37,13 @@ for file in files_list:
     fila_name = file.split('/')[-1]
     fila_name = fila_name[:fila_name.rfind('.')]
 
-    wrapper.attach_checkerboard_texture(flip_uv=True, save_texture=True, image_name=fila_name+'.png')
+    wrapper.attach_checkerboard_texture()
+    wrapper.fit_uv_to_bounds()
+    wrapper.scale_uv_coords(0.6, 0)
+    wrapper.rotate_uv_coords(3.14, 2)
+    wrapper.flip_uv(axis='x')
+    wrapper.save_uv_layout(image_name=fila_name+'_uv.png')
+    wrapper.save_texture_image(fila_name+'_texture.png', image_name='uv_texture')
     wrapper.render_views_rotating(fila_name, num_view=num_view, up_axis=up_axis)
 
     wrapper.remove_objects()
