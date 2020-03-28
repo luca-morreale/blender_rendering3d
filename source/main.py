@@ -3,24 +3,23 @@ import os
 import sys
 
 sys.path.append('.')
-from blender import Blender
+from blender_helper import BlenderHelper
 
 
 up_axis = 'Y'
 num_view = 10
 
-wrapper = Blender()
+wrapper = BlenderHelper()
 wrapper.set_engine('BLENDER_WORKBENCH')
 wrapper.set_light_location((1,1,1))
-wrapper.set_cam_location((0, -0.05, -2.5))
-wrapper.fix_camera_yaw(-3.14)
+wrapper.set_cam_location((0, -0.05, -0.5))
+wrapper.fix_camera_yaw(0)
 wrapper.point_camera_to_origin()
 
 wrapper.set_view_solid()
 wrapper.set_color_by_vertex()
 
 path = '../models/b3.obj'
-
 
 if os.path.isfile(path):
     files_list = [path]
