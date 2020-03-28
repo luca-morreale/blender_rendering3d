@@ -1,13 +1,12 @@
 
-import os
 import bpy
-import bpy_extras
 from mathutils import Vector
-from mathutils import Matrix
 import numpy as np
 
-
-class Blender(object):
+class BlenderWrapper(object):
+    '''
+        Low level blender interaction wrapper
+    '''
 
     def __init__(self):
         RANDOM_SEED = 1239
@@ -18,20 +17,18 @@ class Blender(object):
         self.light = None
         self.obj_list = []
         self.materials = {}
+        self.nodes     = {}
+        self.images    = {}
 
         self.camera_roll  = None
         self.camera_pitch = None
         self.camera_yaw   = None
-
-        self.set_transparent_background()
-        self.set_image_size(1800, 1090)
 
     ########################################################################
     ##                         Close Blender                              ##
     ########################################################################
     def close(self):
         bpy.ops.wm.quit_blender()
-
 
     ########################################################################
     ##                            Enigne                                  ##
@@ -110,20 +107,6 @@ class Blender(object):
     def fix_camera_roll(self, angle):
         self.camera_roll = angle
 
-    def point_camera_to_origin(self):
-        direction = (Vector((0.0, 0.0, 0.0)) - self.cam.location).normalized()
-        euler_direction = direction.to_track_quat('-Z', 'Y').to_euler()
-
-        if self.camera_roll is not None:
-            euler_direction[0] = self.camera_roll
-        if self.camera_pitch is not None:
-            euler_direction[1] = self.camera_pitch
-        if self.camera_yaw is not None:
-            euler_direction[2] = self.camera_yaw
-
-        self.set_cam_rotation(euler_direction)
-
-
     ########################################################################
     ##                             Image                                  ##
     ########################################################################
@@ -131,22 +114,11 @@ class Blender(object):
         self.scene.render.resolution_x = x_res
         self.scene.render.resolution_y = y_res
 
-    def set_transparent_background(self):
-        self.scene.render.image_settings.color_mode = 'RGBA'
-        self.scene.render.film_transparent = True
-
-        world = self.scene.world
-        world_tree = bpy.data.worlds[world.name].node_tree
-        background_node = world_tree.nodes.new("ShaderNodeBackground")
-
-        background_node.inputs[0].default_value = (1, 1, 1, 0)
-
     ########################################################################
     ##                             Nodes                                  ##
     ########################################################################
     def link_nodes(self, material, inputs, outputs):
         material.node_tree.links.new(inputs, outputs)
-
 
     def create_new_material(self, name):
         material = bpy.data.materials.new(name)
@@ -156,20 +128,31 @@ class Blender(object):
 
         return material
 
-    def create_texture_node(self, type, material):
+    def create_node(self, name, type, material):
         mat_nodes = material.node_tree.nodes
-        texture   = mat_nodes.new(type)
-        return texture
+        node      = mat_nodes.new(type)
+
+        self.nodes[name] = node
+
+        return node
 
     def create_new_image(self, name, type):
         bpy.ops.image.new(name=name, generated_type=type)
         image = bpy.data.images[name]
+
+        self.images[name] = image
+
         return image
 
     def get_shader_inputs(self, material, shader_name):
         mat_nodes = material.node_tree.nodes
         inputs = mat_nodes[shader_name].inputs
         return inputs
+
+    def get_shader_outputs(self, material, shader_name):
+        mat_nodes = material.node_tree.nodes
+        outputs = mat_nodes[shader_name].outputs
+        return outputs
 
     def attach_material_to_object(self, material, ob):
         # Assign it to object
@@ -225,36 +208,6 @@ class Blender(object):
     ########################################################################
     ##                                UV                                  ##
     ########################################################################
-    def project_uv_to_bounds(self, active_ob):
-        self.select_object(active_ob)
-        self.toggle_object_edit_mode()
-        self.select_all_uv()
-        bpy.ops.uv.pack_islands()
-        self.deselect_all_uv()
-        self.deselect_all_objects()
-
-    def export_uv_layout(self, image_name, active_ob):
-        self.select_object(active_ob)
-        self.toggle_object_edit_mode()
-        bpy.ops.uv.export_layout(filepath=image_name, export_all=True, opacity=0.0)
-        self.deselect_all_objects()
-
-    def flip_uv(self, active_ob, axis='x'):
-        self.select_object(active_ob)
-        self.toggle_object_edit_mode()
-        # self.select_all_uv()
-
-        if axis == 'x':
-            axis_rotation = (True, False, False)
-        elif axis == 'y':
-            axis_rotation = (False, True, False)
-
-        bpy.ops.transform.mirror(constraint_axis=axis_rotation)
-
-        # self.deselect_all_uv()
-        self.deselect_all_objects()
-
-
     def select_all_uv(self):
         bpy.ops.uv.select_all(action='SELECT')
 
@@ -263,49 +216,8 @@ class Blender(object):
 
 
     ########################################################################
-    ##                          Checkerboard                              ##
-    ########################################################################
-    def attach_checkerboard_texture(self, checkerboard_type='color', flip_uv=False,
-                                    save_texture=False, image_name=None):
-
-        if checkerboard_type == 'color':
-            image_type = 'COLOR_GRID'
-        else:
-            image_type = 'UV_GRID'
-
-        self.set_color_by_texture()
-
-        material  = self.create_new_material('checkerboard_mat')
-        texture_node = self.create_texture_node(type='ShaderNodeTexImage', material=material)
-        image = self.create_new_image(name='uv_texture', type=image_type)
-
-        texture_node.image = image
-
-        shader_inputs = self.get_shader_inputs(material=material, shader_name='Principled BSDF')
-
-        self.link_nodes(material, shader_inputs['Base Color'], texture_node.outputs["Color"])
-        self.attach_material_to_object(material, self.obj_list[-1])
-
-        self.project_uv_to_bounds(self.obj_list[-1])
-
-        if flip_uv:
-            self.flip_uv(self.obj_list[-1], axis='x')
-
-        if save_texture:
-            filename, file_extension = os.path.splitext(image_name)
-            image.save_render(filename + '_texture' + file_extension)
-            self.export_uv_layout(image_name, self.obj_list[-1])
-
-
-    ########################################################################
     ##                          Rendering                                 ##
     ########################################################################
-    def render_views_rotating(self, file_prefix, num_view=10, up_axis='Y'):
-        rotation_step = 2.0 * np.pi /num_view
-        for i in range(num_view):
-            bpy.ops.transform.rotate(value=rotation_step, orient_axis=up_axis)
-            self.render('{}_{}_{:02}.png'.format(file_prefix, up_axis, i))
-
     def render(self, filename):
         # render settings
         self.scene.render.image_settings.file_format = 'PNG'
